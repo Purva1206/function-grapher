@@ -22,6 +22,24 @@ function plotFunction()
             legend(["f(x)", "df/dx"]);
         end
         
+        if get(integralCheckbox, 'value') == 1 then
+            a = evstr(get(lowerBoundBox, 'string'));
+            b = evstr(get(upperBoundBox, 'string'));
+            
+            xFill = linspace(a, b, 100);
+            yFill = f(xFill);
+            
+            areaValue = inttrap(xFill, yFill);
+            
+            polyX = [xFill, b, a];
+            polyY = [yFill, 0, 0];
+            xfpoly(polyX, polyY);
+            e = gce();
+            e.background = color("lightblue");
+            
+            disp('Integral value: ' + string(areaValue));
+        end
+        
         xlabel('x');
         ylabel('y');
         title(userInput);
@@ -50,6 +68,16 @@ plotButton = uicontrol(fig, 'style', 'pushbutton', ...
 derivCheckbox = uicontrol(fig, 'style', 'checkbox', ...
     'string', 'Show Derivative', ...
     'position', [20, 50, 150, 20]);
+integralCheckbox = uicontrol(fig, 'style', 'checkbox', ...
+    'string', 'Show Integral', ...
+    'position', [200, 50, 130, 20]);
 
+lowerBoundBox = uicontrol(fig, 'style', 'edit', ...
+    'string', '0', ...
+    'position', [340, 50, 60, 20]);
+
+upperBoundBox = uicontrol(fig, 'style', 'edit', ...
+    'string', '2', ...
+    'position', [410, 50, 60, 20]);
 // Separate plot window (this one gets cleared each time)
 plotFig = figure('Position', [750, 100, 600, 500], 'Name', 'Graph');
