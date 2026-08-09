@@ -37,7 +37,7 @@ function plotFunction()
             e = gce();
             e.background = color("lightblue");
             
-            disp('Integral value: ' + string(areaValue));
+            set(integralLabel, 'string', 'Integral: ' + string(areaValue));
         end
         
         if get(tangentCheckbox, 'value') == 1 then
@@ -52,7 +52,7 @@ function plotFunction()
             plot(tangentX, tangentY, 'g--');
             plot(x0, y0, 'ko'); // mark the point itself
             
-            disp('Slope at x = ' + string(x0) + ' is ' + string(slope));
+            set(slopeLabel, 'string', 'Slope at x=' + string(x0) + ': ' + string(slope));
         end
         
         xlabel('x');
@@ -107,4 +107,11 @@ tangentCheckbox = uicontrol(fig, 'style', 'checkbox', ...
     'string', 'Show Tangent', ...
     'position', [340, 15, 130, 20]);
 // Separate plot window (this one gets cleared each time)
-plotFig = figure('Position', [750, 100, 600, 500], 'Name', 'Graph');
+integralLabel = uicontrol(fig, 'style', 'text', ...
+    'string', 'Integral: --', ...
+    'position', [20, 115, 250, 20]);
+
+slopeLabel = uicontrol(fig, 'style', 'text', ...
+    'string', 'Slope: --', ...
+    'position', [280, 115, 250, 20]);
+plotFig = figure('Position', [750, 100, 620, 500], 'Name', 'Graph');
