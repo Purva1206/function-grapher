@@ -22,9 +22,15 @@ function plotFunction()
             legend(["f(x)", "df/dx"]);
         end
         
-        if get(integralCheckbox, 'value') == 1 then
+       if get(integralCheckbox, 'value') == 1 then
             a = evstr(get(lowerBoundBox, 'string'));
             b = evstr(get(upperBoundBox, 'string'));
+            
+            if a > b then
+                temp = a;
+                a = b;
+                b = temp;
+            end
             
             xFill = linspace(a, b, 100);
             yFill = f(xFill);
@@ -58,9 +64,10 @@ function plotFunction()
         xlabel('x');
         ylabel('y');
         title(userInput);
-    catch
+   catch
         disp(lasterror());
-        messagebox('Invalid function. Please check your input.', 'Error', 'error');
+        messagebox('Invalid function or bounds. Please check your input.', 'Error', 'error');
+    
     end
 endfunction
 
@@ -93,11 +100,12 @@ plotButton = uicontrol(fig, 'style', 'pushbutton', ...
 // Row 3: derivative + integral toggle + bounds
 derivCheckbox = uicontrol(fig, 'style', 'checkbox', ...
     'string', 'Show Derivative', ...
-    'position', [20, 145, 150, 20]);
-
+    'position', [20, 145, 150, 20], ...
+    'callback', 'plotFunction()');
 integralCheckbox = uicontrol(fig, 'style', 'checkbox', ...
     'string', 'Show Integral', ...
-    'position', [200, 145, 130, 20]);
+    'position', [200, 145, 130, 20], ...
+    'callback', 'plotFunction()');
 
 lowerBoundBox = uicontrol(fig, 'style', 'edit', ...
     'string', '0', ...
@@ -119,7 +127,8 @@ tangentSlider = uicontrol(fig, 'style', 'slider', ...
 
 tangentCheckbox = uicontrol(fig, 'style', 'checkbox', ...
     'string', 'Show Tangent', ...
-    'position', [340, 105, 130, 20]);
+    'position', [340, 105, 130, 20], ...
+    'callback', 'plotFunction()');
 
 // Row 5: preset buttons
 presetSin = uicontrol(fig, 'style', 'pushbutton', ...
