@@ -1,0 +1,157 @@
+clear;
+close(winsid());
+
+function plotFunction()
+    userInput = get(inputBox, 'string');
+
+    try
+        functionList = strsplit(userInput, ',');
+        numFunctions = size(functionList, 1);
+
+        colors = ['b', 'r', 'g', 'm', 'k', 'c'];
+
+        scf(plotFig);
+        clf();
+        legendLabels = [];
+
+        x = linspace(-10, 10, 200);
+
+        // Plot each comma-separated function with a cycling color
+        for i = 1:numFunctions
+            funcStr = stripblanks(functionList(i));
+            fixedFunc = strsubst(funcStr, '^', '.^');
+            fixedFunc = strsubst(fixedFunc, '..^', '.^');
+            deff('y = f' + string(i) + '(x)', 'y = ' + fixedFunc);
+
+            colorIndex = modulo(i-1, size(colors, 2)) + 1;
+            execstr('y_' + string(i) + ' = f' + string(i) + '(x)');
+            execstr('plot(x, y_' + string(i) + ', ''' + colors(colorIndex) + '-'')');
+
+            legendLabels = [legendLabels, funcStr];
+        end
+
+        xgrid();
+
+        // Derivative, integral, and tangent all apply to the FIRST function only
+        if get(derivCheckbox, 'value') == 1 then
+            h = 0.0001;
+            dy = (f1(x + h) - f1(x - h)) / (2*h);
+            plot(x, dy, 'r--');
+            legendLabels = [legendLabels, 'df1/dx'];
+        end
+
+        if get(integralCheckbox, 'value') == 1 then
+            a = evstr(get(lowerBoundBox, 'string'));
+            b = evstr(get(upperBoundBox, 'string'));
+
+            if a > b then
+                temp = a;
+                a = b;
+                b = temp;
+            end
+
+            xFill = linspace(a, b, 100);
+            yFill = f1(xFill);
+
+            areaValue = inttrap(xFill, yFill);
+
+            polyX = [xFill, b, a];
+            polyY = [yFill, 0, 0];
+            xfpoly(polyX, polyY);
+            e = gce();
+            e.background = color("lightblue");
+
+            set(integralLabel, 'string', 'Integral: ' + string(areaValue));
+        else
+            set(integralLabel, 'string', 'Integral: --');
+        end
+
+        if get(tangentCheckbox, 'value') == 1 then
+            x0 = get(tangentSlider, 'value');
+            h = 0.0001;
+            slope = (f1(x0 + h) - f1(x0 - h)) / (2*h);
+            y0 = f1(x0);
+
+            tangentX = [x0 - 2, x0 + 2];
+            tangentY = y0 + slope * (tangentX - x0);
+
+            plot(tangentX, tangentY, 'g--');
+            plot(x0, y0, 'ko');
+
+            set(slopeLabel, 'string', 'Slope at x=' + string(x0) + ': ' + string(slope));
+        else
+            set(slopeLabel, 'string', 'Slope: --');
+        end
+
+        legend(legendLabels);
+        xlabel('x');
+        ylabel('y');
+        title(userInput);
+        tracePoints(30);
+    catch
+        disp(lasterror());
+        messagebox('Invalid function or bounds. Please check your input.', 'Error', 'error');
+    end
+endfunction
+
+function tracePoints(clicksRemaining)
+    if clicksRemaining <= 0 then
+        return;
+    end
+    
+    scf(plotFig);
+    [x_click, y_click] = locate(1);
+    
+    if isempty(x_click) then
+        return;
+    end
+    
+    x_click = x_click(1);
+    y_click = y_click(1);
+    
+    y_actual = f1(x_click);
+    
+    plot(x_click, y_actual, 'ko');
+    e = gce();
+    e.children.mark_size = 8;
+    e.children.mark_foreground = 5;
+    e.children.mark_background = 5;
+    
+    set(pointLabel, 'string', 'Point: x=' + string(x_click) + ', f1(x)=' + string(y_actual));
+    
+    tracePoints(clicksRemaining - 1);
+endfunction
+
+// ===== Control panel window (buttons/inputs live here, never cleared) =====
+fig = figure('Position', [100, 100, 640, 260], 'Name', 'Function Grapher Controls');
+
+// Row 1: live info labels (point, integral, slope)
+pointLabel = uicontrol(fig, 'style', 'text', ...
+    'string', 'Point: --', ...
+    'position', [20, 220, 600, 20], ...
+    'horizontalalignment', 'left');
+
+integralLabel = uicontrol(fig, 'style', 'text', ...
+    'string', 'Integral: --', ...
+    'position', [20, 195, 290, 20], ...
+    'horizontalalignment', 'left');
+
+slopeLabel = uicontrol(fig, 'style', 'text', ...
+    'string', 'Slope: --', ...
+    'position', [320, 195, 300, 20], ...
+    'horizontalalignment', 'left');
+
+// Row 2: function input + plot button
+uicontrol(fig, 'style', 'text', ...
+    'string', 'Function(s) of x:', ...
+    'position', [20, 155, 150, 20], ...
+    'horizontalalignment', 'left');
+
+inputBox = uicontrol(fig, 'style', 'edit', ...
+    'string', 'sin(x), cos(x)', ...
+    'position', [180, 155, 320, 25]);
+
+plotButton = uicontrol(fig, 'style', 'pushbutton', ...
+    'string', 'Plot', ...
+    'position', [510, 155, 110, 25], ...
+    'callback', 'plotFunction()');
